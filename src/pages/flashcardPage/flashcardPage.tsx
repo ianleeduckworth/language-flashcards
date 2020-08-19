@@ -1,5 +1,8 @@
 import * as React from 'react';
-import { flashcards, Flashcard } from '../data/flashcards';
+import { withRouter, RouteComponentProps } from "react-router-dom";
+import { Flashcard } from '../../data/flashcards';
+import { checkAuthAndLogout } from '../../utilities/authUtilities';
+import { db } from '../../firebase';
 
 interface Outcome {
     answered: boolean;
@@ -7,25 +10,54 @@ interface Outcome {
     message: string;
 }
 
-const FlashcardPageComponent = () => {
+export interface FlashcardPageProps extends RouteComponentProps { }
+
+const FlashcardPageComponent = (props: FlashcardPageProps) => {
+    const { history } = props;
+
     const initOutcome: Outcome = {
         answered: false,
         correct: false,
         message: ''
     };
 
+    const [flashcards, setFlashcards] = React.useState([] as Flashcard[]);
     const [flashcard, setFlashcard] = React.useState({} as Flashcard);
     const [answer, setAnswer] = React.useState('');
     const [outcome, setOutcome] = React.useState(initOutcome);
 
     React.useEffect(() => {
-        loadNewItem();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        let mounted = true;
+        checkAuthAndLogout(history);
+
+        async function fetchData() {
+            const { docs } = await db.collection('flashcards').get();
+            const flashcards = docs.map(doc => doc.data()) as Flashcard[];
+            console.log(flashcards);
+            if (mounted) {
+                setFlashcards(flashcards);
+                loadNewItem(flashcards[Math.floor(Math.random() * flashcards.length)]);
+            }
+
+            return () => mounted = false;
+        }
+        fetchData();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const loadNewItem = () => {
-        const flashcard = flashcards[Math.floor(Math.random() * flashcards.length)];
-        setFlashcard(flashcard);
+    const loadNewItem = (flashcard?: Flashcard) => {
+        const toLoad = flashcard ?? flashcards[Math.floor(Math.random() * flashcards.length)];
+        if (toLoad) {
+            setFlashcard(toLoad);
+        } else {
+            setFlashcard({
+                foreign: '',
+                native: '',
+                alsoForeign: [''],
+                alsoNative: [''],
+                pronunciation: ''
+            })
+        }
         setOutcome(initOutcome);
     }
 
@@ -96,11 +128,11 @@ const FlashcardPageComponent = () => {
                     </button>
                 </div>
             }
-            {outcome.answered && 
+            {outcome.answered &&
                 <button type="button" className="btn btn-primary my-2" onClick={onNextClicked}>Next</button>
             }
         </div>
     )
 }
 
-export const FlashcardPage = FlashcardPageComponent;
+export const FlashcardPage = withRouter(FlashcardPageComponent);
