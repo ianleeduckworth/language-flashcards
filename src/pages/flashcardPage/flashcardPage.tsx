@@ -69,19 +69,19 @@ const FlashcardPageComponent = (props: FlashcardPageProps) => {
     const onCheckClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         e.preventDefault();
         let correct = false;
-        if (answer === flashcard.native) {
+        if (answer.toUpperCase() === flashcard.native.toUpperCase()) {
             correct = true;
             setOutcome({
                 answered: true,
                 correct: true,
-                message: 'You got it right!'
+                message: `You got it right! "${flashcard.foreign}" means "${flashcard.native}"`
             });
-        } else if (flashcard.alsoNative && flashcard.alsoNative.indexOf(answer) !== -1) {
+        } else if (flashcard.alsoNative && flashcard.alsoNative.map(a => a.toUpperCase()).indexOf(answer.toUpperCase()) !== -1) {
             correct = true;
             setOutcome({
                 answered: true,
                 correct: true,
-                message: `you got it right, but a better answer would have been: ${flashcard.native}`
+                message: `you got it right, but a better answer for "${flashcard.foreign}" would have been "${flashcard.native}"`
             });
         } else {
             setOutcome({
@@ -103,7 +103,7 @@ const FlashcardPageComponent = (props: FlashcardPageProps) => {
     return (
         <div className="container d-flex flex-column align-items-center">
             <h1 className="my-2">{flashcard.foreign}</h1>
-            <form>
+            <form className="d-flex flex-column align-items-center">
                 <input className="my-2" onChange={e => setAnswer(e.target.value)} value={answer} />
                 {flashcard.pronunciation &&
                     <div className="my-2">
