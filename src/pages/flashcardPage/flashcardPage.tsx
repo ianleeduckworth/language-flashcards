@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { withRouter, RouteComponentProps } from "react-router-dom";
-import { Flashcard } from '../../data/flashcards';
+import { FlashcardModel } from '../../data/flashcards';
 import { checkAuthAndLogout } from '../../utilities/authUtilities';
 import { db } from '../../firebase';
 import { shuffleArray } from '../../utilities/arrayUtilities';
@@ -22,8 +22,14 @@ const FlashcardPageComponent = (props: FlashcardPageProps) => {
         message: ''
     };
 
-    const [flashcards, setFlashcards] = React.useState([] as Flashcard[]);
-    const [flashcard, setFlashcard] = React.useState({} as Flashcard);
+    const [flashcards, setFlashcards] = React.useState([] as FlashcardModel[]);
+    const [flashcard, setFlashcard] = React.useState({
+        native: '',
+        foreign: '',
+        alsoNative: [],
+        alsoForeign: [],
+        pronunciation: ''
+    } as FlashcardModel);
     const [currentFlashcardIndex, setCurrentFlashcardIndex] = React.useState(0);
     const [answer, setAnswer] = React.useState('');
     const [outcome, setOutcome] = React.useState(initOutcome);
@@ -34,11 +40,12 @@ const FlashcardPageComponent = (props: FlashcardPageProps) => {
 
         async function fetchData() {
             const { docs } = await db.collection('flashcards').get();
-            const flashcards = docs.map(doc => doc.data()) as Flashcard[];
+            const flashcards = docs.map(doc => doc.data()) as FlashcardModel[];
             if (mounted) {
                 const shuffledFlashcards = shuffleArray(flashcards)
                 setFlashcards(shuffledFlashcards);
-                loadNewItem(shuffledFlashcards[0]);
+                setCurrentFlashcardIndex(0);
+                setFlashcard(shuffledFlashcards[0]);
             }
 
             return () => mounted = false;
@@ -47,31 +54,35 @@ const FlashcardPageComponent = (props: FlashcardPageProps) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const loadNewItem = (flashcard?: Flashcard) => {
-        if (flashcard) {
-            setFlashcard(flashcard);
-        } else {
-            setFlashcard(flashcards[currentFlashcardIndex]);
+    const loadNewItem = () => {
+        if (currentFlashcardIndex === flashcards.length - 1) {
+            setCurrentFlashcardIndex(0);
+            setFlashcard(flashcards[0]);
+        } else { 
+            setCurrentFlashcardIndex(currentFlashcardIndex + 1);
+            setFlashcard(flashcards[currentFlashcardIndex + 1])
         }
         
-        setCurrentFlashcardIndex(currentFlashcardIndex + 1);
-        setOutcome(initOutcome);
+        setAnswer('');
     }
 
-    const onCheckClick = () => {
+    const onCheckClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+        e.preventDefault();
+        let correct = false;
         if (answer === flashcard.native) {
+            correct = true;
             setOutcome({
                 answered: true,
                 correct: true,
                 message: 'You got it right!'
             });
         } else if (flashcard.alsoNative && flashcard.alsoNative.indexOf(answer) !== -1) {
+            correct = true;
             setOutcome({
                 answered: true,
                 correct: true,
                 message: `you got it right, but a better answer would have been: ${flashcard.native}`
             });
-            console.log(`you got it right.  Best answer: ${flashcard.native}`);
         } else {
             setOutcome({
                 answered: true,
@@ -79,36 +90,37 @@ const FlashcardPageComponent = (props: FlashcardPageProps) => {
                 message: `You got it wrong.  Correct answer: ${flashcard.native}`
             });
         }
+
+        if (correct) {
+            loadNewItem();
+        }
     }
 
     const dismissMessage = () => {
         setOutcome(initOutcome);
     }
 
-    const onNextClicked = () => {
-        loadNewItem();
-        setAnswer('');
-    }
-
     return (
         <div className="container d-flex flex-column align-items-center">
             <h1 className="my-2">{flashcard.foreign}</h1>
-            <input className="my-2" onChange={e => setAnswer(e.target.value)} value={answer} />
-            {flashcard.pronunciation &&
-                <div className="my-2">
-                    <p>
-                        <a data-toggle="collapse" href="#pronunciation-collapse" role="button" aria-expanded="false" aria-controls="collapseExample">
-                            Show pronunciation
+            <form>
+                <input className="my-2" onChange={e => setAnswer(e.target.value)} value={answer} />
+                {flashcard.pronunciation &&
+                    <div className="my-2">
+                        <p>
+                            <a data-toggle="collapse" href="#pronunciation-collapse" role="button" aria-expanded="false" aria-controls="collapseExample">
+                                Show pronunciation
                         </a>
-                    </p>
-                    <div className="collapse" id="pronunciation-collapse">
-                        <div className="card card-body">
-                            {flashcard.pronunciation}
+                        </p>
+                        <div className="collapse" id="pronunciation-collapse">
+                            <div className="card card-body">
+                                {flashcard.pronunciation}
+                            </div>
                         </div>
                     </div>
-                </div>
-            }
-            <button type="button" className="btn btn-primary my-2" onClick={onCheckClick}>Check</button>
+                }
+                <button type="submit" className="btn btn-primary my-2" onClick={onCheckClick}>Check</button>
+            </form>
             {outcome.answered && outcome.correct &&
                 <div className="alert alert-success alert-dismissible fade show my-2" role="alert">
                     <strong>Yay!</strong>{` ${outcome.message}`}
@@ -124,9 +136,6 @@ const FlashcardPageComponent = (props: FlashcardPageProps) => {
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-            }
-            {outcome.answered &&
-                <button type="button" className="btn btn-primary my-2" onClick={onNextClicked}>Next</button>
             }
         </div>
     )

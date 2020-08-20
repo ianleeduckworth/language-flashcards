@@ -2,7 +2,7 @@ import * as React from 'react';
 import { withRouter, RouteComponentProps } from "react-router-dom";
 import { checkAuthAndLogout } from '../../utilities/authUtilities';
 import { auth, db } from '../../firebase';
-import { Flashcard } from '../../data/flashcards';
+import { FlashcardModel } from '../../data/flashcards';
 
 export interface AddFlashcardPageProps extends RouteComponentProps { }
 
@@ -45,7 +45,7 @@ export const AddFlashcardPageComponent = (props: AddFlashcardPageProps) => {
             return;
         }
 
-        const toAdd: Flashcard = {
+        const toAdd: FlashcardModel = {
             native,
             foreign,
         }

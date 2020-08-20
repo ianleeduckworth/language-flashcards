@@ -1,4 +1,4 @@
-export interface Flashcard {
+export interface FlashcardModel {
     native: string;
     alsoNative?: string[];
     foreign: string;
