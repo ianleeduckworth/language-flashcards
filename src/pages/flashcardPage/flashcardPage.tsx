@@ -3,6 +3,7 @@ import { withRouter, RouteComponentProps } from "react-router-dom";
 import { Flashcard } from '../../data/flashcards';
 import { checkAuthAndLogout } from '../../utilities/authUtilities';
 import { db } from '../../firebase';
+import { shuffleArray } from '../../utilities/arrayUtilities';
 
 interface Outcome {
     answered: boolean;
@@ -23,6 +24,7 @@ const FlashcardPageComponent = (props: FlashcardPageProps) => {
 
     const [flashcards, setFlashcards] = React.useState([] as Flashcard[]);
     const [flashcard, setFlashcard] = React.useState({} as Flashcard);
+    const [currentFlashcardIndex, setCurrentFlashcardIndex] = React.useState(0);
     const [answer, setAnswer] = React.useState('');
     const [outcome, setOutcome] = React.useState(initOutcome);
 
@@ -33,10 +35,10 @@ const FlashcardPageComponent = (props: FlashcardPageProps) => {
         async function fetchData() {
             const { docs } = await db.collection('flashcards').get();
             const flashcards = docs.map(doc => doc.data()) as Flashcard[];
-            console.log(flashcards);
             if (mounted) {
-                setFlashcards(flashcards);
-                loadNewItem(flashcards[Math.floor(Math.random() * flashcards.length)]);
+                const shuffledFlashcards = shuffleArray(flashcards)
+                setFlashcards(shuffledFlashcards);
+                loadNewItem(shuffledFlashcards[0]);
             }
 
             return () => mounted = false;
@@ -46,18 +48,13 @@ const FlashcardPageComponent = (props: FlashcardPageProps) => {
     }, []);
 
     const loadNewItem = (flashcard?: Flashcard) => {
-        const toLoad = flashcard ?? flashcards[Math.floor(Math.random() * flashcards.length)];
-        if (toLoad) {
-            setFlashcard(toLoad);
+        if (flashcard) {
+            setFlashcard(flashcard);
         } else {
-            setFlashcard({
-                foreign: '',
-                native: '',
-                alsoForeign: [''],
-                alsoNative: [''],
-                pronunciation: ''
-            })
+            setFlashcard(flashcards[currentFlashcardIndex]);
         }
+        
+        setCurrentFlashcardIndex(currentFlashcardIndex + 1);
         setOutcome(initOutcome);
     }
 

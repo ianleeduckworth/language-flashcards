@@ -63,6 +63,12 @@ export const AddFlashcardPageComponent = (props: AddFlashcardPageProps) => {
         }
 
         try {
+            const { docs } = await db.collection('flashcards').where('native', '==', native).get();
+            if (docs.length > 0) {
+                setError('this item already exists in the database!');
+                return;
+            }
+
             await db.collection('flashcards').add(toAdd);
             resetForm();
             setSuccess(`New word "${native}" (or better yet: "${foreign}") was added!`);
