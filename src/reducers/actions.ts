@@ -1,3 +1,5 @@
 export enum Actions {
     LOGIN = 'LOGIN',
+    SET_FLASHCARDS = 'SET_FLASHCARDS',
+    CLEAR_FLASHCARDS = 'CLEAR_FLASHCARDS',
 }

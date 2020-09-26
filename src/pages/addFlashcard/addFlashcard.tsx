@@ -3,11 +3,15 @@ import { withRouter, RouteComponentProps } from "react-router-dom";
 import { checkAuthAndLogout } from '../../utilities/authUtilities';
 import { auth, db } from '../../firebase';
 import { FlashcardModel } from '../../data/flashcards';
+import { connect } from 'react-redux';
+import { Actions } from '../../reducers/actions';
 
-export interface AddFlashcardPageProps extends RouteComponentProps { }
+export interface AddFlashcardPageProps extends RouteComponentProps { 
+    clearFlashcards: () => void;
+}
 
 export const AddFlashcardPageComponent = (props: AddFlashcardPageProps) => {
-    const { history } = props;
+    const { history, clearFlashcards } = props;
 
     const [native, setNative] = React.useState('');
     const [foreign, setForeign] = React.useState('');
@@ -45,8 +49,13 @@ export const AddFlashcardPageComponent = (props: AddFlashcardPageProps) => {
             return;
         }
 
+        if (!native || !foreign) {
+            setError('Native and foreign must be populated');
+            return;
+        }
+
         const toAdd: FlashcardModel = {
-            native,
+            native: native.toLowerCase(),
             foreign,
         }
 
@@ -74,6 +83,8 @@ export const AddFlashcardPageComponent = (props: AddFlashcardPageProps) => {
             setSuccess(`New word "${native}" (or better yet: "${foreign}") was added!`);
         } catch (e) {
             setError(e);
+        } finally {
+            clearFlashcards();
         }
     }
 
@@ -207,4 +218,10 @@ export const AddFlashcardPageComponent = (props: AddFlashcardPageProps) => {
     )
 }
 
-export const AddFlashcardPage = withRouter(AddFlashcardPageComponent);
+const mapDispatchToProps = (dispatch: any) => {
+    return {
+        clearFlashcards: dispatch({type: Actions.CLEAR_FLASHCARDS})
+    }
+}
+
+export const AddFlashcardPage = connect(null, mapDispatchToProps)(withRouter(AddFlashcardPageComponent));

@@ -2,8 +2,8 @@ import * as React from 'react';
 import { withRouter, RouteComponentProps } from "react-router-dom";
 import { FlashcardModel } from '../../data/flashcards';
 import { checkAuthAndLogout } from '../../utilities/authUtilities';
-import { db } from '../../firebase';
 import { shuffleArray } from '../../utilities/arrayUtilities';
+import { getFlashcards } from '../../utilities/apiUtilities';
 
 interface Outcome {
     answered: boolean;
@@ -39,8 +39,7 @@ const FlashcardPageComponent = (props: FlashcardPageProps) => {
         checkAuthAndLogout(history);
 
         async function fetchData() {
-            const { docs } = await db.collection('flashcards').get();
-            const flashcards = docs.map(doc => doc.data()) as FlashcardModel[];
+            const flashcards = await getFlashcards();
             if (mounted) {
                 const shuffledFlashcards = shuffleArray(flashcards)
                 setFlashcards(shuffledFlashcards);

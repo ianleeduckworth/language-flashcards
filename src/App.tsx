@@ -6,9 +6,11 @@ import { Routes } from './data/routes';
 import { LoginPage } from './pages/loginPage/loginPage';
 import { Navbar } from './components/navbar/navbar';
 import { AddFlashcardPage } from './pages/addFlashcard/addFlashcard';
+import { DictionaryPage } from './pages/dictionary/dictionaryPage';
 import { auth } from './firebase';
 import { store } from './index';
 import { Actions } from './reducers/actions';
+import { NotFoundPage } from './pages/404/notFound';
 
 export const AppComponent = () => {
 
@@ -28,6 +30,8 @@ export const AppComponent = () => {
         <Route path={Routes.flashcards} component={FlashcardPage} exact />
         <Route path={Routes.login} component={LoginPage} exact />
         <Route path={Routes.addFlashcard} component={AddFlashcardPage} exact />
+        <Route path={Routes.dictionary} component={DictionaryPage} exact />
+        <Route component={NotFoundPage}></Route>
       </Switch>
     </BrowserRouter>
 
