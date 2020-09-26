@@ -8,14 +8,17 @@ export const HomePageComponent = () => {
             <div className="row">
                 <h1>Language Flashcards</h1>
             </div>
-            <div className="row">
+            <div className="row py-2">
                 <p>A great way to study vocabulary.  Add words and then study them.</p>
             </div>
-            <div className="row">
+            <div className="row py-2">
                 <Link to={Routes.flashcards}>Get started studying!</Link>
             </div>
-            <div className="row">
+            <div className="row py-2">
                 <Link to={Routes.addFlashcard}>Add a new flashcard!</Link>
+            </div>
+            <div className="row py-2">
+                <Link to={Routes.dictionary}>See all your words!</Link>
             </div>
         </div>
     )

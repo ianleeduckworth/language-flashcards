@@ -3,5 +3,6 @@ export enum Routes {
     addWord = '/addWord',
     login = '/login',
     flashcards = '/flashcards',
-    addFlashcard='/addFlashcard'
+    addFlashcard='/addFlashcard',
+    dictionary='/dictionary'
 }
