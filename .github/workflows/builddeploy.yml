@@ -15,7 +15,7 @@ jobs:
       - name: Install Dependencies
         run: yarn
       - name: TEST - install react-router-dom
-        run: yarn add react-router-dom
+        run: yarn add react-router-dom @types/react-router-dom
       - name: Build
         run: yarn build
       - name: Archive Production Artifact
