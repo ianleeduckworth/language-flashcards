@@ -12,6 +12,9 @@ import { store } from './index';
 import { Actions } from './reducers/actions';
 import { NotFoundPage } from './pages/404/notFound';
 
+/***
+ * The main application component
+ */
 export const AppComponent = () => {
 
   React.useEffect(() => {
