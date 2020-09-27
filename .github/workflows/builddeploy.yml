@@ -15,7 +15,6 @@ jobs:
       - name: Install Dependencies
         run: yarn
       - name: Install react-router-dom @types/react-router-dom
-        description: I actually don't know why this step is necessary, but without it the deploy will fail because react-router-dom is missing.
         run: yarn add react-router-dom @types/react-router-dom
       - name: Build
         run: yarn build
