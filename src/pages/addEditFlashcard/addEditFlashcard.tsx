@@ -1,17 +1,21 @@
 import * as React from 'react';
 import { withRouter, RouteComponentProps } from "react-router-dom";
 import { checkAuthAndLogout } from '../../utilities/authUtilities';
-import { auth, db } from '../../firebase';
-import { FlashcardModel } from '../../data/flashcards';
+import { auth, flashcardsDb } from '../../firebase';
+import { FlashcardModel, NewFlashcardModel } from '../../data/flashcards';
 import { connect } from 'react-redux';
 import { Actions } from '../../reducers/actions';
+import { Routes } from '../../data/routes';
 
-export interface AddFlashcardPageProps extends RouteComponentProps { 
+export interface AddEditFlashcardPageProps extends RouteComponentProps {
     clearFlashcards: () => void;
 }
 
-export const AddFlashcardPageComponent = (props: AddFlashcardPageProps) => {
+export const AddEditFlashcardPageComponent = (props: AddEditFlashcardPageProps) => {
     const { history, clearFlashcards } = props;
+
+    const [editMode, setEditMode] = React.useState(false);
+    const [flashcardId, setFlashcardId] = React.useState('');
 
     const [native, setNative] = React.useState('');
     const [foreign, setForeign] = React.useState('');
@@ -26,8 +30,30 @@ export const AddFlashcardPageComponent = (props: AddFlashcardPageProps) => {
     const [success, setSuccess] = React.useState('');
 
     React.useEffect(() => {
+        let mounted = true;
         checkAuthAndLogout(history);
-    }, [history]);
+
+        const id = (props.match.params as any).flashcard_id as string;
+        if (id) {
+            setEditMode(true);
+            setFlashcardId(id);
+            const setData = async () => {
+                if (!mounted) return;
+
+                const doc = await flashcardsDb.doc(id).get();
+                const data = doc.data() as FlashcardModel;
+
+                setNative(data.native);
+                setForeign(data.foreign);
+                setAlsoNative(data.alsoNative ?? [] as string[]);
+                setAlsoForeign(data.alsoForeign ?? [] as string[]);
+                setPronunciation(data.pronunciation ?? '');
+
+                return () => mounted = false;
+            }
+            setData();
+        }
+    }, [history, props.match.params]);
 
     const resetForm = () => {
         setNative('');
@@ -54,7 +80,7 @@ export const AddFlashcardPageComponent = (props: AddFlashcardPageProps) => {
             return;
         }
 
-        const toAdd: FlashcardModel = {
+        const toAdd: NewFlashcardModel = {
             native: native.toLowerCase(),
             foreign,
         }
@@ -71,18 +97,39 @@ export const AddFlashcardPageComponent = (props: AddFlashcardPageProps) => {
             toAdd.alsoForeign = alsoForeign
         }
 
+        if (editMode) {
+            await updateFlashcard(toAdd);
+        } else {
+            await addFlashcard(toAdd);
+        }
+    }
+
+    const addFlashcard = async (flashcard: NewFlashcardModel) => {
         try {
-            const { docs } = await db.collection('flashcards').where('native', '==', native).get();
+            const { docs } = await flashcardsDb.where('native', '==', native).get();
             if (docs.length > 0) {
                 setError('this item already exists in the database!');
                 return;
             }
 
-            await db.collection('flashcards').add(toAdd);
+            await flashcardsDb.add(flashcard);
             resetForm();
             setSuccess(`New word "${native}" (or better yet: "${foreign}") was added!`);
         } catch (e) {
             setError(e);
+        } finally {
+            clearFlashcards();
+        }
+    }
+
+    const updateFlashcard = async (flashcard: NewFlashcardModel) => {
+        try {
+            await flashcardsDb.doc(flashcardId).update({ ...flashcard });
+            resetForm();
+            setSuccess(`"${native}" was updated successfully!`);
+            history.push(Routes.dictionary);
+        } catch (e) {
+            setError(e)
         } finally {
             clearFlashcards();
         }
@@ -138,6 +185,13 @@ export const AddFlashcardPageComponent = (props: AddFlashcardPageProps) => {
         setAlsoForeignInputs(newForeignInputs);
     }
 
+    const onDeleteClicked = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+        e.preventDefault();
+        flashcardsDb.doc(flashcardId).delete();
+        clearFlashcards();
+        history.push(Routes.dictionary);
+    }
+
     return (
         <div className="container">
             <h1 className="pt-3">Add Flashcard</h1>
@@ -187,6 +241,7 @@ export const AddFlashcardPageComponent = (props: AddFlashcardPageProps) => {
                     </div>
                 </div>
                 <button className="btn btn-outline-primary" type="submit">Submit</button>
+                {editMode && <button className="btn btn-outline-secondary ml-2" type="button" data-toggle="modal" data-target="#speedbumpModal">Delete</button>}
             </form>
             {error &&
                 <div className="alert alert-danger mt-3" role="alert">
@@ -214,14 +269,37 @@ export const AddFlashcardPageComponent = (props: AddFlashcardPageProps) => {
                     <strong>Awesome!</strong> {success}
                 </div>
             }
+
+            {/*speedbump modal*/}
+            <div className="modal fade" id="speedbumpModal" tabIndex={-1} role="dialog" aria-labelledby="speedbumpModalLabel" aria-hidden="true">
+                <div className="modal-dialog" role="document">
+                    <div className="modal-content">
+                        <div className="modal-header">
+                            <h5 className="modal-title" id="speedbumpModalLabel">Are you sure?</h5>
+                            <button type="button" className="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div className="modal-body">
+                            Are you sure you want to delete this item?
+                        </div>
+                        <div className="modal-footer">
+                            <button type="button" className="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                            <button type="button" className="btn btn-primary" data-dismiss="modal" onClick={onDeleteClicked}>Delete</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     )
 }
 
 const mapDispatchToProps = (dispatch: any) => {
     return {
-        clearFlashcards: dispatch({type: Actions.CLEAR_FLASHCARDS})
+        clearFlashcards: () => dispatch({ type: Actions.CLEAR_FLASHCARDS })
     }
 }
 
-export const AddFlashcardPage = connect(null, mapDispatchToProps)(withRouter(AddFlashcardPageComponent));
+export const AddEditFlashcardPage =
+    connect(null, mapDispatchToProps)
+        (withRouter(AddEditFlashcardPageComponent));
