@@ -15,7 +15,7 @@ export const HomePageComponent = () => {
                 <Link to={Routes.flashcards}>Get started studying!</Link>
             </div>
             <div className="row py-2">
-                <Link to={Routes.addFlashcard}>Add a new flashcard!</Link>
+                <Link to={Routes.addEditFlashcard}>Add a new flashcard!</Link>
             </div>
             <div className="row py-2">
                 <Link to={Routes.dictionary}>See all your words!</Link>

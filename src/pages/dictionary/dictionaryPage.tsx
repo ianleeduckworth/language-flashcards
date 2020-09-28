@@ -4,6 +4,7 @@ import { withRouter, RouteComponentProps } from "react-router-dom";
 import { getFlashcards } from '../../utilities/apiUtilities';
 import { FlashcardModel } from '../../data/flashcards';
 import { sortFlashcardsAlphabeticallyByNative } from '../../utilities/arrayUtilities';
+import { Routes } from '../../data/routes';
 
 export interface DictionaryProps extends RouteComponentProps { }
 
@@ -26,6 +27,14 @@ export const DictionaryPageComponent = (props: DictionaryProps) => {
         fetchData();
     }, [history])
 
+    const onRowClicked = (
+        e: React.MouseEvent<HTMLTableRowElement, MouseEvent>,
+        flashcard: FlashcardModel
+    ) => {
+        e.preventDefault();
+        history.push(`${Routes.addEditFlashcard}/${flashcard.id}`);
+    }
+
     return (
         <div className="container">
             <h1>Dictionary</h1>
@@ -38,11 +47,16 @@ export const DictionaryPageComponent = (props: DictionaryProps) => {
                     </tr>
                 </thead>
                 <tbody>
-                    {flashcards.map(flashcard => <tr>
-                        <td>{flashcard.native}</td>
-                        <td>{flashcard.foreign}</td>
-                        <td>{flashcard.pronunciation}</td>
-                    </tr>)}
+                    {flashcards.map(flashcard =>
+                        <tr onClick={(e) =>
+                            onRowClicked(e, flashcard)}
+                            key={flashcard.native}
+                            style={{cursor: 'pointer'}}
+                        >
+                            <td>{flashcard.native}</td>
+                            <td>{flashcard.foreign}</td>
+                            <td>{flashcard.pronunciation}</td>
+                        </tr>)}
                 </tbody>
 
             </table>

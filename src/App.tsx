@@ -5,7 +5,7 @@ import { HomePage } from './pages/homePage/homePage';
 import { Routes } from './data/routes';
 import { LoginPage } from './pages/loginPage/loginPage';
 import { Navbar } from './components/navbar/navbar';
-import { AddFlashcardPage } from './pages/addFlashcard/addFlashcard';
+import { AddEditFlashcardPage } from './pages/addEditFlashcard/addEditFlashcard';
 import { DictionaryPage } from './pages/dictionary/dictionaryPage';
 import { auth } from './firebase';
 import { store } from './index';
@@ -32,7 +32,7 @@ export const AppComponent = () => {
         <Route path={Routes.home} component={HomePage} exact />
         <Route path={Routes.flashcards} component={FlashcardPage} exact />
         <Route path={Routes.login} component={LoginPage} exact />
-        <Route path={Routes.addFlashcard} component={AddFlashcardPage} exact />
+        <Route path={`${Routes.addEditFlashcard}/:flashcard_id?`} component={AddEditFlashcardPage} />
         <Route path={Routes.dictionary} component={DictionaryPage} exact />
         <Route component={NotFoundPage}></Route>
       </Switch>

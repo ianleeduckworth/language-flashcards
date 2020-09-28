@@ -24,6 +24,7 @@ const FlashcardPageComponent = (props: FlashcardPageProps) => {
 
     const [flashcards, setFlashcards] = React.useState([] as FlashcardModel[]);
     const [flashcard, setFlashcard] = React.useState({
+        id: '',
         native: '',
         foreign: '',
         alsoNative: [],
