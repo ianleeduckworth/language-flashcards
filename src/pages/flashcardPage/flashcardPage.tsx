@@ -4,6 +4,7 @@ import { FlashcardModel } from '../../data/flashcards';
 import { checkAuthAndLogout } from '../../utilities/authUtilities';
 import { shuffleArray } from '../../utilities/arrayUtilities';
 import { getFlashcards } from '../../utilities/apiUtilities';
+import { Routes } from '../../data/routes';
 
 interface Outcome {
     answered: boolean;
@@ -96,6 +97,11 @@ const FlashcardPageComponent = (props: FlashcardPageProps) => {
         }
     }
 
+    const onEditClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+        e.preventDefault();
+        history.push(`${Routes.addEditFlashcard}/${flashcard.id}`);
+    }
+
     const dismissMessage = () => {
         setOutcome(initOutcome);
     }
@@ -121,6 +127,7 @@ const FlashcardPageComponent = (props: FlashcardPageProps) => {
                 }
                 <button type="submit" className="btn btn-primary my-2" onClick={onCheckClick}>Check</button>
             </form>
+            <button type="submit" className="btn btn-secondary my-2" onClick={onEditClick}>Edit</button>
             {outcome.answered && outcome.correct &&
                 <div className="alert alert-success alert-dismissible fade show my-2" role="alert">
                     <strong>Yay!</strong>{` ${outcome.message}`}
