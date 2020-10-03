@@ -59,11 +59,11 @@ const FlashcardPageComponent = (props: FlashcardPageProps) => {
         if (currentFlashcardIndex === flashcards.length - 1) {
             setCurrentFlashcardIndex(0);
             setFlashcard(flashcards[0]);
-        } else { 
+        } else {
             setCurrentFlashcardIndex(currentFlashcardIndex + 1);
             setFlashcard(flashcards[currentFlashcardIndex + 1])
         }
-        
+
         setAnswer('');
     }
 
@@ -125,9 +125,11 @@ const FlashcardPageComponent = (props: FlashcardPageProps) => {
                         </div>
                     </div>
                 }
-                <button type="submit" className="btn btn-primary my-2" onClick={onCheckClick}>Check</button>
+                <div className="row">
+                    <button type="submit" className="btn btn-primary my-2 mr-2" onClick={onCheckClick}>Check</button>
+                    <button className="btn btn-secondary my-2 ml-2" onClick={onEditClick}>Edit</button>
+                </div>
             </form>
-            <button type="submit" className="btn btn-secondary my-2" onClick={onEditClick}>Edit</button>
             {outcome.answered && outcome.correct &&
                 <div className="alert alert-success alert-dismissible fade show my-2" role="alert">
                     <strong>Yay!</strong>{` ${outcome.message}`}
